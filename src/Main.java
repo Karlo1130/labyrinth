@@ -17,6 +17,7 @@ import javax.swing.border.EmptyBorder;
 public class Main extends JFrame {
 	
 	private JPanel contentPane;
+	private Panel panel;
 
 	private int x=90, y=90;
 	
@@ -44,6 +45,7 @@ public class Main extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 		
+		panel = new Panel();
 		panel.setBackground(Color.decode("#333e50"));
 		contentPane.add(panel, BorderLayout.CENTER);
 		
@@ -67,21 +69,27 @@ public class Main extends JFrame {
 				case 37:
 					if(x>10)
 						x-=vel;
+					
 					break;
 				case 38:
 					if(y>10)
 						y-=vel;
+
 					break;
 				case 39:
 					if(x<630)
 						x+=vel;
+					
 					break;
 				case 40:
 					if(y<520)
 						y+=vel;
+					
 					break;
 
 				}
+				
+//				panel.stopMovement();
 
 				panel.repaint();
 
@@ -117,7 +125,11 @@ public class Main extends JFrame {
 		
 	}
 	
-	private JPanel panel = new JPanel() {
+	private class Panel extends JPanel{
+		
+		public Rect formerPlayer;
+		public Rect player;
+		public Rect wall;
 		
 		 @Override
 		    public void paintComponent(Graphics g) {
@@ -127,18 +139,38 @@ public class Main extends JFrame {
 		        g.fillRect(10, 10, this.getWidth()-20, this.getHeight()-20);
 
 		        //player
-		        Rect player = new Rect(x, y, 10, 10, Color.BLUE);
+		        player = new Rect(x, y, 10, 10, Color.BLUE);
 		        g.setColor(player.c);
 		        g.fillRect(player.x, player.y, player.w, player.h);
+		        
 
 		        //wall
-		        Rect wall = new Rect(90, 180, 30, 300, Color.gray);
+		        wall = new Rect(90, 180, 30, 300, Color.gray);
 		        g.setColor(wall.c);
 		        g.fillRect(wall.x, wall.y, wall.w, wall.h);	
 
+		        if(!player.colision(wall))
+		        	formerPlayer = new Rect(player);
+		        else {
+		        	
+		        	x = formerPlayer.x;
+		        	y = formerPlayer.y;
+		        	
+		        	g.setColor(player.c);
+		        	g.fillRect(formerPlayer.x, formerPlayer.y, formerPlayer.w, formerPlayer.h);
+		        	
+		        	}
+		        
 		        System.out.println(player.colision(wall));
 
 		    }
+		 
+		 public void stopMovement() {
+			 if (player.colision(wall)) {
+				 player.x = formerPlayer.x;
+				 player.y = formerPlayer.y;
+			 }
+		 }
 	};
 	
 	
@@ -160,11 +192,21 @@ public class Main extends JFrame {
 			
 		}
 		
+		Rect(Rect rect){
+
+			this.x = rect.x;
+			this.y = rect.y;
+			this.w = rect.w;
+			this.h = rect.h;
+			this.c = rect.c;
+			
+		}
+		
 		public boolean colision(Rect target) {
 			if(x < target.x +target.w && 
 					x+w > target.x &&
 					y < target.y +target.h &&
-					y+h >target.y) {
+					y+h > target.y) {
 				return true;
 			}
 			
