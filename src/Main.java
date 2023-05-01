@@ -1,33 +1,23 @@
 
-import java.awt.AWTException;
-import java.awt.Robot;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseMotionListener;
-import java.util.Iterator;
 import java.util.Random;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 
 public class Main extends JFrame {
 
 	private JPanel contentPane;
 	private Panel panel;
 	private int x=40, y=20;
+	private int map;
 	int vel = 10;
+	
+	JLabel time;
+	
+	private Timer timer;
+    private int tiempoTranscurrido;
+
 	
 	int laberinto[][] = {
 			{1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
@@ -139,6 +129,7 @@ public class Main extends JFrame {
 		
 	};
 
+	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -155,33 +146,24 @@ public class Main extends JFrame {
 
 	public Main() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(600, 200, 566, 615);
+		setBounds(600, 200, 556, 645);
 		contentPane = new JPanel();
 		contentPane.setBackground(Color.decode("#320139"));
-
+		
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 
+		time = new JLabel("00:00", JLabel.CENTER);
+		time.setFont(new Font("Verdana", Font.BOLD, 25));
+		time.setSize(contentPane.getWidth(), 100);
+		contentPane.add(time, BorderLayout.NORTH);
+		
+		startTime();
+		
 		panel = new Panel();
 		panel.setBackground(Color.decode("#333e50"));
 		contentPane.add(panel, BorderLayout.CENTER);
 
-		panel.addMouseMotionListener(new MouseMotionListener() {
-
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void mouseMoved(MouseEvent e) {
-				// TODO Auto-generated method stub
-				System.out.println("Mouse X: "+e.getX()+
-						"\nMouse Y: "+e.getY());
-			}
-			
-		});
 		panel.addKeyListener(new KeyListener() {
 
 			@Override
@@ -217,9 +199,6 @@ public class Main extends JFrame {
 					break;
 
 				}
-
-				System.out.println("Player X: "+x+"\n"
-						+"Player Y: "+y+"\n");
 				
 				panel.repaint();
 
@@ -330,14 +309,19 @@ public class Main extends JFrame {
 			g.fillRect(goal.x, goal.y, goal.w, goal.h);
 			
 			if (player.collision(goal)) {
+				stopTime();
         		JOptionPane.showMessageDialog(null, "El Jugador gana","Victoria", JOptionPane.INFORMATION_MESSAGE);
-        		restartGame();
+        		finishGame();
         		 try{
         			 Robot robot = new Robot();
         			 robot.keyPress(KeyEvent.VK_DOWN);
+        			 robot.keyPress(KeyEvent.VK_UP);
         		 }catch(AWTException a){
         			 a.printStackTrace();
         		 }
+        		 
+        		 restartTime();
+        		 startTime();
 			}
 
 		}
@@ -355,15 +339,48 @@ public class Main extends JFrame {
 			for (int i = 0; i < 50; i++) {
 				for (int j = 0; j < 50; j++) {
 					if(lab[i][j] == 1)
-					wall[aux++] = new Rect(20+j*10, 20+i*10);
+						wall[aux++] = new Rect(20+j*10, 20+i*10);
 				}
 			}	
 			
 			int aux2 = aux;
-
+			
 			for (int i = 0; i < 2500-aux2 ; i++) {
 				wall[aux++] = new Rect(0, 0, 0, 0, Color.white);
 			}
+			
+			restartTime();
+			startTime();
+		}
+		
+		public void finishGame() {
+			x=40;
+			y=20;
+			
+			//wall=null;
+			
+			if(map == 1)
+				lab = laberinto2;
+			else
+				lab = laberinto;
+			
+			int aux = 0;
+			
+			for (int i = 0; i < 50; i++) {
+				for (int j = 0; j < 50; j++) {
+					if(lab[i][j] == 1)
+						wall[aux++] = new Rect(20+j*10, 20+i*10);
+				}
+			}	
+			
+			int aux2 = aux;
+			
+			for (int i = 0; i < 2500-aux2 ; i++) {
+				wall[aux++] = new Rect(0, 0, 0, 0, Color.white);
+			}
+			
+			restartTime();
+			startTime();
 		}
 
 	}
@@ -371,8 +388,7 @@ public class Main extends JFrame {
 	
 	public int[][] randomMap() {
 		Random random = new Random();
-        int map = random.nextInt(2)+1;
-        System.out.println(map);
+        map = random.nextInt(2)+1;
         
         if(map == 1) {
         	return laberinto;
@@ -434,4 +450,44 @@ public class Main extends JFrame {
 
 	}
 	
+	public void startTime() {
+
+		if (timer == null) {
+            timer = new Timer(1000, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    tiempoTranscurrido++;
+                    actualizarLabel();
+                }
+            });
+            timer.start();
+        }
+		
+	}
+
+	public void stopTime() {
+
+		if (timer != null) {
+            timer.stop();
+            timer = null;
+        }
+		
+	}
+
+	public void restartTime() {
+
+		tiempoTranscurrido = 0;
+        actualizarLabel();
+        if (timer != null) {
+            timer.stop();
+            timer = null;
+        }
+		
+	}
+	
+	private void actualizarLabel() {
+        int minutos = (tiempoTranscurrido % 3600) / 60;
+        int segundos = tiempoTranscurrido % 60;
+        String tiempo = String.format("%02d:%02d", minutos, segundos);
+        time.setText(tiempo);
+    }
 }
