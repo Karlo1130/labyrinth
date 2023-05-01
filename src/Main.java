@@ -17,6 +17,8 @@ public class Main extends JFrame {
 	
 	private Timer timer;
     private int tiempoTranscurrido;
+    
+    String tiempo;
 
 	
 	int laberinto[][] = {
@@ -310,7 +312,7 @@ public class Main extends JFrame {
 			
 			if (player.collision(goal)) {
 				stopTime();
-        		JOptionPane.showMessageDialog(null, "El Jugador gana","Victoria", JOptionPane.INFORMATION_MESSAGE);
+        		JOptionPane.showMessageDialog(null, "El Jugador gano en: "+tiempo,"Victoria", JOptionPane.INFORMATION_MESSAGE);
         		finishGame();
         		 try{
         			 Robot robot = new Robot();
@@ -487,7 +489,7 @@ public class Main extends JFrame {
 	private void actualizarLabel() {
         int minutos = (tiempoTranscurrido % 3600) / 60;
         int segundos = tiempoTranscurrido % 60;
-        String tiempo = String.format("%02d:%02d", minutos, segundos);
+        tiempo = String.format("%02d:%02d", minutos, segundos);
         time.setText(tiempo);
     }
 }
